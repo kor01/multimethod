@@ -1,6 +1,6 @@
 import pytest
 from typing import List
-from multimethod import isa, multimethod, overload, multimeta, signature, DispatchError
+from multimethod import isa, multimethod, overload, multimeta, signature, DispatchError, Type
 
 
 # string join
@@ -148,3 +148,39 @@ def test_meta():
     assert m.method(12) == 'INT'
     assert m.normal('') == 'OBJECT'
     assert m.rebind('') == 'REBOUND'
+
+
+A, B, C = (type('', (), {}) for _ in range(3))
+
+@multimethod
+def comb(_: Type[A], __: Type[B]):
+    return "AB"
+
+@multimethod
+def comb(_: Type[B], __: Type[C]):
+    return "BC"
+
+@multimethod
+def comb(_: Type[A], __: Type[A, C]):
+    return "AAC"
+
+
+@multimethod
+def comb(_: Type[A, B], __: Type[B]):
+    return "BB"
+
+@multimethod
+def comb(_: Type[A, B], x):
+    return "A only"
+
+
+def test_dispatch_on_type():
+    assert comb(A, B) == "AB"
+    assert comb(B, C) == "BC"
+    assert comb(A, C) == "AAC"
+    assert comb(A, A) == "AAC"
+    assert comb(B, B) == "BB"
+    assert comb(A, int) == "A only"
+    with pytest.raises(DispatchError):
+        comb(A(), B())
+
