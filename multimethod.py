@@ -70,9 +70,9 @@ def mro(sub, sup):
   if isinstance(sup, tuple):
     return sum(tuple(mro(sub, x) for x in sup), ())
   else:
-    mros = sup.mro()
-    if sub in mros:
-      return mros.index(sub),
+    mros = sub.mro()
+    if sup in mros:
+      return mros.index(sup),
     else:
       return len(mros) - 1,
 
@@ -89,7 +89,7 @@ class signature(tuple):
   def __sub__(self, other):
     """Return relative distances, assuming self >= other."""
     mros = []
-    for sup, sub in zip(self, other):
+    for sub, sup in zip(self, other):
       i = min(mro(sub, sup))
       mros.append(i)
     return mros
@@ -152,6 +152,7 @@ class multimethod(dict):
     if types in self:
       return self[types]
     keys = self.parents(types)
+
     if len(keys) == 1 if self.strict else keys:
       return self.setdefault(types, self[min(keys, key=signature(types).__sub__)])
     raise DispatchError("{}{}: {} methods found".format(self.__name__, types, len(keys)))
