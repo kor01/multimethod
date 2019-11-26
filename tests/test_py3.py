@@ -186,6 +186,19 @@ def test_dispatch_on_type():
     with pytest.raises(DispatchError):
         comb(A(), B())
 
+@multimethod
+def kwarg(a, b, c=1):
+    return "kw"
+
+@multimethod
+def kwarg(a, b, c):
+    return "nkw"
+
+def test_kwargs_dispatch():
+    assert kwarg(1, 2, c=3) == 'kw'
+    assert kwarg(1, 2, 3) == 'nkw'
+
+
 
 @multimethod
 def narg(a, b, c):
@@ -199,4 +212,3 @@ def narg(a, b):
 def test_dispatch_on_nargs():
     assert narg(1, 2, 3) == 3
     assert narg(1, 2) == 2
-    

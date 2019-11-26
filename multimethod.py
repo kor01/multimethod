@@ -33,7 +33,14 @@ def get_types(func):
   annotations = dict(typing.get_type_hints(func))
   annotations.pop('return', None)
   params = inspect.signature(func).parameters
-  return tuple(annotations.pop(name, object) for name in params)
+
+  types = []
+  for name, param in params.items():
+    if param.default is not inspect._empty:
+      break
+    types.append(annotations.pop(name, object))
+
+  return tuple(types)
 
 
 class DispatchError(TypeError):
