@@ -150,7 +150,7 @@ def test_meta():
     assert m.rebind('') == 'REBOUND'
 
 
-A, B, C = (type('', (), {}) for _ in range(3))
+A, B, C = (type(n, (), {}) for n in ("A", "B", "C"))
 
 @multimethod
 def comb(_: Type[A], __: Type[B]):
@@ -159,6 +159,7 @@ def comb(_: Type[A], __: Type[B]):
 @multimethod
 def comb(_: Type[B], __: Type[C]):
     return "BC"
+
 
 @multimethod
 def comb(_: Type[A], __: Type[A, C]):
@@ -175,6 +176,7 @@ def comb(_: Type[A, B], x):
 
 
 def test_dispatch_on_type():
+
     assert comb(A, B) == "AB"
     assert comb(B, C) == "BC"
     assert comb(A, C) == "AAC"
@@ -184,3 +186,17 @@ def test_dispatch_on_type():
     with pytest.raises(DispatchError):
         comb(A(), B())
 
+
+@multimethod
+def narg(a, b, c):
+    return 3
+
+@multimethod
+def narg(a, b):
+    return 2
+
+
+def test_dispatch_on_nargs():
+    assert narg(1, 2, 3) == 3
+    assert narg(1, 2) == 2
+    

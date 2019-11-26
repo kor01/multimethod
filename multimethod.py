@@ -30,12 +30,10 @@ class Type(tuple, metaclass=TypeMcs):
 
 def get_types(func):
   """Return evaluated type hints in order."""
-  if not hasattr(func, '__annotations__'):
-    return ()
   annotations = dict(typing.get_type_hints(func))
   annotations.pop('return', None)
   params = inspect.signature(func).parameters
-  return tuple(annotations.pop(name, object) for name in params if annotations)
+  return tuple(annotations.pop(name, object) for name in params)
 
 
 class DispatchError(TypeError):
@@ -67,6 +65,11 @@ def mro(sub, sup):
     assert isinstance(sub, Type)
     return mro(sub[0], tuple(sub))
 
+  if isinstance(sub, Type):
+    assert sup is object
+    assert len(sub) == 1
+    return mro(sub[0], sup)
+
   if isinstance(sup, tuple):
     return sum(tuple(mro(sub, x) for x in sup), ())
   else:
@@ -81,7 +84,7 @@ class signature(tuple):
   """A tuple of types that supports partial ordering."""
 
   def __le__(self, other):
-    return len(self) <= len(other) and all(map(issubtype, other, self))
+    return len(self) == len(other) and all(map(issubtype, other, self))
 
   def __lt__(self, other):
     return self != other and self <= other
